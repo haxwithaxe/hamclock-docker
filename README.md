@@ -9,7 +9,7 @@ See [https://www.clearskyinstitute.com/ham/HamClock/](https://www.clearskyinstit
 This image is based on `https://github.com/zeidlos/hamclock-docker` and `https://github.com/ChrisRomp/hamclock-docker`.
 
 # Usage
-The `DISPLAY_RES` environment variable is used to select the resolution of HamClock. Valid options are ``800x480``, ``1600x960``, ``2400x1440``, and ``3200x1920``.
+The `DISPLAY_RES` environment variable is used to select the resolution of HamClock. Valid options are ``800x480``, ``1600x960``, ``2400x1440``, and ``3200x1920``. The default value is ``1600x960``.
 
 ## Docker Run
 1. Run Hamclock using `docker run --user 63058:63058 --name hamclock -e DISPLAY_RES=<your prefered resolution> -d -p 8081:8081 -p 8080:8080 --volume ./data:/hamclock/.hamclock ghcr.io/haxwithaxe/hamclock`. ``63058`` is just a random number you can use anything or omit the `--user` option to run as ``root``. While the user can be random it must be consistent between runs.
