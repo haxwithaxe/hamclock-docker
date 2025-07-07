@@ -1,0 +1,51 @@
+name: Check for Updates
+
+on:
+  schedule:
+  - cron: "37 */6 * * *"
+  workflow_dispatch:
+
+env:
+  VERSION_CHECK_URL: https://www.clearskyinstitute.com/ham/HamClock/version.pl
+
+jobs:
+  version-check:
+    name: Compare Local and Remote Versions
+    runs-on: ubuntu-latest
+    outputs:
+        update_required: ${{ steps.compare_versions.outputs.update_required }}
+        current_version: ${{ steps.get_release_version.outputs.current_version }}
+        remote_version: ${{ steps.get_remote_version.outputs.remote_version }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Get remote version
+      id: get_remote_version
+      run: |
+        set -e
+        echo "Getting version from $VERSION_CHECK_URL"
+        REMOTE_VERSION=$(curl -s $VERSION_CHECK_URL | head -n 1)
+        echo "Remote version: $REMOTE_VERSION" >> $GITHUB_STEP_SUMMARY
+        echo "remote_version=$REMOTE_VERSION" >> "$GITHUB_OUTPUT"
+
+    - name: Compare versions
+      id: compare_versions
+      env:
+        CURRENT_VERSION : ${{ steps.get_release_version.outputs.current_version }}
+        REMOTE_VERSION : ${{ steps.get_remote_version.outputs.remote_version }}
+      run: |
+        set -e
+        CURRENT_VERSION=$(cat .HamClock.version)
+        echo "Current version: $CURRENT_VERSION" >> $GITHUB_STEP_SUMMARY
+        echo "current_version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
+        if [ "$(printf '%s\n' "$CURRENT_VERSION" "$REMOTE_VERSION" | sort -V --reverse | head -n 1)" == "$CURRENT_VERSION" ]; then
+            echo "Current version $CURRENT_VERSION is greater than or equal to Remote version $REMOTE_VERSION."
+            echo "No update required." >> $GITHUB_STEP_SUMMARY
+            echo "update_required=false" >> "$GITHUB_OUTPUT"
+        else
+            echo "Remote version $REMOTE_VERSION is newer than Current version $CURRENT_VERSION."
+            echo "Creating release... :rocket:" >> $GITHUB_STEP_SUMMARY
+            echo "update_required=true" >> "$GITHUB_OUTPUT"
+        fi
