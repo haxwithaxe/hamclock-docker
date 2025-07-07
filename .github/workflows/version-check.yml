@@ -66,11 +66,11 @@ jobs:
           key: hamclock
 
       - name: Download HamClock
-        if: steps.cache-hamclock.outputs.cache-hit != 'true' and needs.version-check.outputs.update_required == 'true'
+        if: steps.cache-hamclock.outputs.cache-hit != 'true' && needs.version-check.outputs.update_required == 'true'
         run: curl -o ESPHamClock.zip https://www.clearskyinstitute.com/ham/HamClock/ESPHamClock.zip
 
       - name: Download HamClock
-        if: steps.cache-hamclock.outputs.cache-hit != 'true' and needs.version-check.outputs.update_required == 'true'
+        if: steps.cache-hamclock.outputs.cache-hit != 'true' && needs.version-check.outputs.update_required == 'true'
         run: |
           curl -o upstream-release-notes.txt $VERSION_CHECK_URL
           echo "Release notes from [HamClock](https://www.clearskyinstitute.com/ham/HamClock/)." > release-notes.md
