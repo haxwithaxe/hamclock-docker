@@ -29,11 +29,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download HamClock
-        uses: ethanjli/cached-download-action@v0.1.2
+      - name: Cache HamClock
+        id: cache-hamclock
+        uses: actions/cache@v4
         with:
-          url: https://www.clearskyinstitute.com/ham/HamClock/ESPHamClock.zip
-          destination: ./ESPHamClock.zip
+          path: ESPHamClock.zip
+          key: hamclock
+
+      - name: Download HamClock
+        if: steps.cache-hamclock.outputs.cache-hit != 'true'
+        run: curl -o ESPHamClock.zip https://www.clearskyinstitute.com/ham/HamClock/ESPHamClock.zip
       
       # Set up QEMU for cross-platform builds
       - name: Set up QEMU
