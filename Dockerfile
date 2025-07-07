@@ -21,9 +21,17 @@ RUN curl -O https://www.clearskyinstitute.com/ham/HamClock/ESPHamClock.zip && \
     cd /hamclock && \
     sed -i 's/-O3/-O2/g' Makefile && \
     make -j 4 hamclock-web-800x480 && \
+    mv hamclock-web-* /usr/bin/ && \
+    make clean && \
     make -j 4 hamclock-web-1600x960 && \
+    mv hamclock-web-* /usr/bin/ && \
+    make clean && \
     make -j 4 hamclock-web-2400x1440 && \
+    mv hamclock-web-* /usr/bin/ && \
+    make clean && \
     make -j 4 hamclock-web-3200x1920 && \
+    mv hamclock-web-* /usr/bin/ && \
+    make clean && \
     mv hamclock-web-* /usr/bin/ && \
     chmod -R a+rwX /hamclock
 
