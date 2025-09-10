@@ -12,6 +12,7 @@ jobs:
   version-check:
     name: Compare Local and Remote Versions
     runs-on: ubuntu-latest
+    permissions: write-all
     outputs:
       update_required: ${{ steps.compare_versions.outputs.update_required }}
       current_version: ${{ steps.get_release_version.outputs.current_version }}
@@ -21,6 +22,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
+      - name: Get current version
+        id: get_current_version
+        run: echo "current_version=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
+
       - name: Get remote version
         id: get_remote_version
         run: |
@@ -28,30 +33,30 @@ jobs:
           echo "Getting version from $VERSION_CHECK_URL"
           REMOTE_VERSION=$(curl -s $VERSION_CHECK_URL | head -n 1)
           echo "Remote version: $REMOTE_VERSION" >> $GITHUB_STEP_SUMMARY
-          echo "remote_version=$REMOTE_VERSION" >> "$GITHUB_OUTPUT"
+          echo "remote_version=$REMOTE_VERSION" >> $GITHUB_OUTPUT
 
       - name: Compare versions
         id: compare_versions
         env:
-          CURRENT_VERSION : ${{ steps.get_release_version.outputs.current_version }}
-          REMOTE_VERSION : ${{ steps.get_remote_version.outputs.remote_version }}
+          CURRENT_VERSION: ${{ steps.get_current_version.outputs.current_version }}
+          REMOTE_VERSION: ${{ steps.get_remote_version.outputs.remote_version }}
         run: |
           set -e
-          CURRENT_VERSION="$(git tag --list | grep -e '^v[0-9]+\.[0-9]+' | sort -V | tail -n 1)"
           echo "Current version: $CURRENT_VERSION" >> $GITHUB_STEP_SUMMARY
-          echo "current_version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
           if [ "$(printf '%s\n' "$CURRENT_VERSION" "$REMOTE_VERSION" | sort -V | tail -n 1)" == "$CURRENT_VERSION" ]; then
               echo "Current version $CURRENT_VERSION is greater than or equal to Remote version $REMOTE_VERSION."
               echo "No update required." >> $GITHUB_STEP_SUMMARY
-              echo "update_required=false" >> "$GITHUB_OUTPUT"
+              echo "update_required=false" >> $GITHUB_OUTPUT
           else
               echo "Remote version $REMOTE_VERSION is newer than Current version $CURRENT_VERSION."
               echo "Creating release... :rocket:" >> $GITHUB_STEP_SUMMARY
-              echo "update_required=true" >> "$GITHUB_OUTPUT"
+              echo "update_required=true" >> $GITHUB_OUTPUT
           fi
 
       - name: Clear Cached HamClock
-        if: needs.version-check.outputs.update_required == 'true'
+        if: ${{ steps.compare_versions.outputs.update_required }}
+        continue-on-error: true
         run: gh cache delete hamclock
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -59,18 +64,18 @@ jobs:
         
       - name: Cache HamClock
         id: cache-hamclock
-        if: needs.version-check.outputs.update_required == 'true'
+        if: ${{ steps.compare_versions.outputs.update_required }}
         uses: actions/cache@v4
         with:
           path: ESPHamClock.zip
           key: hamclock
 
       - name: Download HamClock
-        if: steps.cache-hamclock.outputs.cache-hit != 'true' && needs.version-check.outputs.update_required == 'true'
+        if: ${{ ! steps.cache-hamclock.outputs.cache-hit && steps.compare_versions.outputs.update_required }}
         run: curl -o ESPHamClock.zip https://www.clearskyinstitute.com/ham/HamClock/ESPHamClock.zip
 
       - name: Download HamClock
-        if: steps.cache-hamclock.outputs.cache-hit != 'true' && needs.version-check.outputs.update_required == 'true'
+        if: ${{ ! steps.cache-hamclock.outputs.cache-hit && steps.compare_versions.outputs.update_required }}
         run: |
           curl -o upstream-release-notes.txt $VERSION_CHECK_URL
           echo "Release notes from [HamClock](https://www.clearskyinstitute.com/ham/HamClock/)." > release-notes.md
@@ -79,13 +84,13 @@ jobs:
           echo '```'>> release-notes.md
 
       - name: Create Release
-        if: needs.version-check.outputs.update_required == 'true'
+        if: ${{ steps.compare_versions.outputs.update_required }}
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_GITHUB }}
-          NEW_VERSION: ${{ needs.version-check.outputs.remote_version }}
+          NEW_VERSION: ${{ steps.get_remote_version.outputs.remote_version }}
         with:
-          tag_name: v${{ needs.version-check.outputs.remote_version }}
+          tag_name: v${{ steps.get_remote_version.outputs.remote_version }}
           body_path: ./release-notes.md
           generate_release_notes: true
           append_body: true
