@@ -12,6 +12,7 @@ jobs:
   version-check:
     name: Compare Local and Remote Versions
     runs-on: ubuntu-latest
+    permissions: write-all
     outputs:
       update_required: ${{ steps.compare_versions.outputs.update_required }}
       current_version: ${{ steps.get_release_version.outputs.current_version }}
