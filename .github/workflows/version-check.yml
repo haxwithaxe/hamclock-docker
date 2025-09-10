@@ -28,7 +28,7 @@ jobs:
           echo "Getting version from $VERSION_CHECK_URL"
           REMOTE_VERSION=$(curl -s $VERSION_CHECK_URL | head -n 1)
           echo "Remote version: $REMOTE_VERSION" >> $GITHUB_STEP_SUMMARY
-          echo "remote_version=$REMOTE_VERSION" >> "$GITHUB_OUTPUT"
+          echo "remote_version=$REMOTE_VERSION" >> $GITHUB_OUTPUT
 
       - name: Compare versions
         id: compare_versions
@@ -39,21 +39,21 @@ jobs:
           set -e
           CURRENT_VERSION="$(git tag --list | grep -e '^v[0-9]+\.[0-9]+' | sort -V | tail -n 1)"
           echo "Current version: $CURRENT_VERSION" >> $GITHUB_STEP_SUMMARY
-          echo "current_version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
           if [ "$(printf '%s\n' "$CURRENT_VERSION" "$REMOTE_VERSION" | sort -V | tail -n 1)" == "$CURRENT_VERSION" ]; then
               echo "Current version $CURRENT_VERSION is greater than or equal to Remote version $REMOTE_VERSION."
               echo "No update required." >> $GITHUB_STEP_SUMMARY
-              echo "update_required=false" >> "$GITHUB_OUTPUT"
+              echo "update_required=false" >> $GITHUB_OUTPUT
           else
               echo "Remote version $REMOTE_VERSION is newer than Current version $CURRENT_VERSION."
               echo "Creating release... :rocket:" >> $GITHUB_STEP_SUMMARY
-              echo "update_required=true" >> "$GITHUB_OUTPUT"
+              echo "update_required=true" >> $GITHUB_OUTPUT
           fi
 
       - name: DEBUG
         run: |
-          echo needs ${{ join(needs.version-check.outputs.*, '\n') }}
-          echo steps ${{ join(steps.version-check.outputs.*, '\n') }}
+          echo needs ${{ join(needs.version-check.compare_versions.outputs.*, '\n') }}
+          echo steps ${{ join(steps.compare_versions.outputs.*, '\n') }}
 
       - name: Clear Cached HamClock
         if: ${{ needs.version-check.outputs.update_required }}
