@@ -5,7 +5,7 @@ LABEL org.opencontainers.image.authors="haxwithaxe W3AXE"
 LABEL org.opencontainers.image.description="HamClock by WBØOEW in a Docker container"
 LABEL org.opencontainers.image.source="https://github.com/haxwithaxe/hamclock-docker"
 
-ENV HOME=/hamlib
+ENV HOME=/hamclock
 
 WORKDIR /
 
