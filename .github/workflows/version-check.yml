@@ -56,6 +56,7 @@ jobs:
 
       - name: Clear Cached HamClock
         if: ${{ steps.compare_versions.outputs.update_required }}
+        continue-on-error: true
         run: gh cache delete hamclock
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
