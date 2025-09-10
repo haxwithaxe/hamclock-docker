@@ -50,6 +50,11 @@ jobs:
               echo "update_required=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: DEBUG
+        run: |
+          echo {{ needs.version-check.outputs.update_required }}
+          echo {{ steps.version-check.outputs.update_required }}
+
       - name: Clear Cached HamClock
         if: ${{ needs.version-check.outputs.update_required }}
         run: gh cache delete hamclock
