@@ -52,10 +52,8 @@ jobs:
 
       - name: DEBUG
         run: |
-          echo needs ${{ needs.version-check.outputs.* }}
-          echo needs ${{ needs.version-check.outputs }}
-          echo steps ${{ steps.version-check.outputs.* }}
-          echo steps ${{ steps.version-check.outputs }}
+          echo needs ${{ join(needs.version-check.outputs.*, '\n') }}
+          echo steps ${{ join(steps.version-check.outputs.*, '\n') }}
 
       - name: Clear Cached HamClock
         if: ${{ needs.version-check.outputs.update_required }}
