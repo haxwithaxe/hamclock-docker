@@ -21,6 +21,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
+      - name: Get current version
+        id: get_current_version
+        run: echo "current_version=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
+
       - name: Get remote version
         id: get_remote_version
         run: |
@@ -33,10 +37,10 @@ jobs:
       - name: Compare versions
         id: compare_versions
         env:
-          REMOTE_VERSION : ${{ steps.get_remote_version.outputs.remote_version }}
+          CURRENT_VERSION: ${{ steps.get_current_version.outputs.current_version }}
+          REMOTE_VERSION: ${{ steps.get_remote_version.outputs.remote_version }}
         run: |
           set -e
-          CURRENT_VERSION="$(git describe --tags --abbrev=0)"
           echo "Current version: $CURRENT_VERSION" >> $GITHUB_STEP_SUMMARY
           echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
           if [ "$(printf '%s\n' "$CURRENT_VERSION" "$REMOTE_VERSION" | sort -V | tail -n 1)" == "$CURRENT_VERSION" ]; then
