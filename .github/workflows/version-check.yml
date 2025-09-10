@@ -51,7 +51,7 @@ jobs:
           fi
 
       - name: Clear Cached HamClock
-        if: needs.version-check.outputs.update_required == 'true'
+        if: ${{ needs.version-check.outputs.update_required }}
         run: gh cache delete hamclock
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -59,18 +59,18 @@ jobs:
         
       - name: Cache HamClock
         id: cache-hamclock
-        if: needs.version-check.outputs.update_required == 'true'
+        if: ${{ needs.version-check.outputs.update_required }}
         uses: actions/cache@v4
         with:
           path: ESPHamClock.zip
           key: hamclock
 
       - name: Download HamClock
-        if: steps.cache-hamclock.outputs.cache-hit != 'true' && needs.version-check.outputs.update_required == 'true'
+        if: ${{ ! steps.cache-hamclock.outputs.cache-hit && needs.version-check.outputs.update_required }}
         run: curl -o ESPHamClock.zip https://www.clearskyinstitute.com/ham/HamClock/ESPHamClock.zip
 
       - name: Download HamClock
-        if: steps.cache-hamclock.outputs.cache-hit != 'true' && needs.version-check.outputs.update_required == 'true'
+        if: ${{ ! steps.cache-hamclock.outputs.cache-hit && needs.version-check.outputs.update_required }}
         run: |
           curl -o upstream-release-notes.txt $VERSION_CHECK_URL
           echo "Release notes from [HamClock](https://www.clearskyinstitute.com/ham/HamClock/)." > release-notes.md
@@ -79,7 +79,7 @@ jobs:
           echo '```'>> release-notes.md
 
       - name: Create Release
-        if: needs.version-check.outputs.update_required == 'true'
+        if: ${{ needs.version-check.outputs.update_required }}
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_GITHUB }}
