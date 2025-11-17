@@ -21,10 +21,18 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
+        with:
+          fetch-tags: true
+          fetch-depth: 0
 
       - name: Get current version
         id: get_current_version
-        run: echo "current_version=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
+        run: |
+          set -e
+          echo "Getting version from git repo"
+          CURRENT_VERSION=$(git describe --tags --abbrev=0)
+          echo "Current version: $CURRENT_VERSION" >> $GITHUB_STEP_SUMMARY
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
 
       - name: Get remote version
         id: get_remote_version
