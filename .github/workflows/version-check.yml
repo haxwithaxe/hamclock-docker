@@ -1,8 +1,8 @@
 name: Check for Updates
 
 on:
-  schedule:
-    - cron: "28 */6 * * *"
+  #schedule:
+  #  - cron: "28 */6 * * *"
   workflow_dispatch:
 
 env:
